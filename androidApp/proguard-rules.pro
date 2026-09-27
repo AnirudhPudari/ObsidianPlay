@@ -1,21 +1,28 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Keep Kotlin Serialization models
+-keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod
+-keepclassmembers class * {
+    @kotlinx.serialization.Serializable <fields>;
+}
+-keepclassmembers class * {
+    @kotlinx.serialization.Serializable *;
+}
+-keepclasseswithmembers class * {
+    companion object;
+}
+-keep class kotlinx.serialization.** { *; }
+-keepclassmembers class **$$serializer {
+    public static final **$$serializer INSTANCE;
+}
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Keep SQLDelight database & driver
+-keep class com.obsidian.shipathon.data.local.db.** { *; }
+-keep class app.cash.sqldelight.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Keep RevenueCat Billing & Suppress internal preview warnings
+-keep class com.revenuecat.purchases.** { *; }
+-dontwarn com.emergetools.**
+-dontwarn com.revenuecat.purchases.**
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Line numbers & debugging attributes for crash reports
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
