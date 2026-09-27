@@ -1,0 +1,35 @@
+# Secrets & Credentials
+local.properties
+secrets.properties
+*.jks
+*.keystore
+*.p8
+*.p12
+*.cer
+*.pem
+*.mobileprovision
+*.env
+*.env.*
+google-services.json
+GoogleService-Info.plist
+
+# Build & System
+*.iml
+.kotlin
+.gradle
+**/build/
+xcuserdata
+!src/**/build/
+.idea
+.DS_Store
+captures
+.externalNativeBuild
+.cxx
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings
+node_modules/
+

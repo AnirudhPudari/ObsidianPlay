@@ -1,0 +1,9 @@
+## ObsidianPlay Local Configuration Template
+## Copy this file to `local.properties` and fill in your actual values.
+## DO NOT commit `local.properties` to version control.
+
+sdk.dir=/Users/YOUR_USER/Library/Android/sdk
+
+# IGDB API Credentials (from https://api-docs.igdb.com)
+IGDB_CLIENT_ID=your_twitch_client_id_here
+IGDB_CLIENT_SECRET=your_twitch_client_secret_here

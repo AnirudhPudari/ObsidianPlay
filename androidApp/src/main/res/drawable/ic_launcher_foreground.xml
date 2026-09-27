@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 1. Obsidian Diamond Gem Shard - Base Shadow & Ambient Crystal -->
+    <!-- Top-Left Facet -->
+    <path
+        android:pathData="M54,23 L28,54 L54,54 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="28"
+                android:startY="23"
+                android:endX="54"
+                android:endY="54"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FF243254" />
+                <item android:offset="1.0" android:color="#FF131C30" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Top-Right Facet (Light Specular Edge) -->
+    <path
+        android:pathData="M54,23 L80,54 L54,54 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="23"
+                android:endX="80"
+                android:endY="54"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FF384D7D" />
+                <item android:offset="1.0" android:color="#FF1A2640" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Bottom-Left Facet -->
+    <path
+        android:pathData="M28,54 L54,85 L54,54 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="28"
+                android:startY="54"
+                android:endX="54"
+                android:endY="85"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FF0F1626" />
+                <item android:offset="1.0" android:color="#FF0A0E1A" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Bottom-Right Facet -->
+    <path
+        android:pathData="M80,54 L54,85 L54,54 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="80"
+                android:startY="54"
+                android:endX="54"
+                android:endY="85"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FF141D30" />
+                <item android:offset="1.0" android:color="#FF0B101D" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Diamond Outer Specular Bevel Border -->
+    <path
+        android:pathData="M54,23 L80,54 L54,85 L28,54 Z"
+        android:strokeWidth="1.2"
+        android:strokeColor="#605371FF"
+        android:strokeLineJoin="round" />
+
+    <!-- 2. Neon Cyan Controller D-Pad Emblem -->
+    <!-- D-Pad Vertical Arm -->
+    <path
+        android:pathData="M51,37 L57,37 A2,2 0 0,1 59,39 L59,69 A2,2 0 0,1 57,71 L51,71 A2,2 0 0,1 49,69 L49,39 A2,2 0 0,1 51,37 Z"
+        android:fillColor="#00E5FF" />
+
+    <!-- D-Pad Horizontal Arm -->
+    <path
+        android:pathData="M39,49 L69,49 A2,2 0 0,1 71,51 L71,57 A2,2 0 0,1 69,59 L39,59 A2,2 0 0,1 37,57 L37,51 A2,2 0 0,1 39,49 Z"
+        android:fillColor="#00E5FF" />
+
+    <!-- Inner Core Cutout for Specular Contrast -->
+    <path
+        android:pathData="M51,40 L57,40 A1,1 0 0,1 58,41 L58,67 A1,1 0 0,1 57,68 L51,68 A1,1 0 0,1 50,67 L50,41 A1,1 0 0,1 51,40 Z"
+        android:fillColor="#0D1527" />
+
+    <path
+        android:pathData="M40,51 L68,51 A1,1 0 0,1 69,52 L69,56 A1,1 0 0,1 68,57 L40,57 A1,1 0 0,1 39,56 L39,52 A1,1 0 0,1 40,51 Z"
+        android:fillColor="#0D1527" />
+
+    <!-- 3. Central Glowing Play Triangle Glyph -->
+    <path
+        android:pathData="M50.5,47.5 L60.5,54 L50.5,60.5 Z"
+        android:fillColor="#00E5FF"
+        android:strokeWidth="1.2"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineJoin="round" />
+
+    <!-- Directional Arrow Accents on D-Pad Ends -->
+    <!-- Up Arrow -->
+    <path
+        android:pathData="M54,39 L56.5,42 L51.5,42 Z"
+        android:fillColor="#00E5FF" />
+    <!-- Down Arrow -->
+    <path
+        android:pathData="M54,69 L51.5,66 L56.5,66 Z"
+        android:fillColor="#00E5FF" />
+    <!-- Left Arrow -->
+    <path
+        android:pathData="M39,54 L42,51.5 L42,56.5 Z"
+        android:fillColor="#00E5FF" />
+    <!-- Right Arrow -->
+    <path
+        android:pathData="M69,54 L66,56.5 L66,51.5 Z"
+        android:fillColor="#00E5FF" />
+
+</vector>

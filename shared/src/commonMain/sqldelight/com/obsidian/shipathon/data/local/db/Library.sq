@@ -1,0 +1,104 @@
+CREATE TABLE library_entries (
+  game_id INTEGER NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  summary TEXT,
+  cover_url TEXT,
+  genres_csv TEXT NOT NULL,
+  platforms_csv TEXT NOT NULL,
+  themes_csv TEXT NOT NULL,
+  rating REAL,
+  first_release_date INTEGER,
+  status TEXT NOT NULL,
+  progress_percent INTEGER NOT NULL,
+  playtime_hours REAL NOT NULL,
+  added_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  last_played_at INTEGER
+);
+
+selectAll:
+SELECT
+  game_id AS gameId,
+  name,
+  summary,
+  cover_url AS coverUrl,
+  genres_csv AS genresCsv,
+  platforms_csv AS platformsCsv,
+  themes_csv AS themesCsv,
+  rating,
+  first_release_date AS firstReleaseDate,
+  status,
+  progress_percent AS progressPercent,
+  playtime_hours AS playtimeHours,
+  added_at AS addedAt,
+  updated_at AS updatedAt,
+  last_played_at AS lastPlayedAt
+FROM library_entries
+ORDER BY updated_at DESC;
+
+selectByStatus:
+SELECT
+  game_id AS gameId,
+  name,
+  summary,
+  cover_url AS coverUrl,
+  genres_csv AS genresCsv,
+  platforms_csv AS platformsCsv,
+  themes_csv AS themesCsv,
+  rating,
+  first_release_date AS firstReleaseDate,
+  status,
+  progress_percent AS progressPercent,
+  playtime_hours AS playtimeHours,
+  added_at AS addedAt,
+  updated_at AS updatedAt,
+  last_played_at AS lastPlayedAt
+FROM library_entries
+WHERE status = ?
+ORDER BY updated_at DESC;
+
+selectById:
+SELECT
+  game_id AS gameId,
+  name,
+  summary,
+  cover_url AS coverUrl,
+  genres_csv AS genresCsv,
+  platforms_csv AS platformsCsv,
+  themes_csv AS themesCsv,
+  rating,
+  first_release_date AS firstReleaseDate,
+  status,
+  progress_percent AS progressPercent,
+  playtime_hours AS playtimeHours,
+  added_at AS addedAt,
+  updated_at AS updatedAt,
+  last_played_at AS lastPlayedAt
+FROM library_entries
+WHERE game_id = ?;
+
+upsert:
+INSERT OR REPLACE INTO library_entries (
+  game_id,
+  name,
+  summary,
+  cover_url,
+  genres_csv,
+  platforms_csv,
+  themes_csv,
+  rating,
+  first_release_date,
+  status,
+  progress_percent,
+  playtime_hours,
+  added_at,
+  updated_at,
+  last_played_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteById:
+DELETE FROM library_entries WHERE game_id = ?;
+
+clearAll:
+DELETE FROM library_entries;
+

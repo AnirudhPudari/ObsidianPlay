@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(.\\\\gradlew.bat tasks --console=plain 2>&1 | Select-Object -Last 100)",
+      "PowerShell(.\\\\gradlew.bat :shared:assemble --console=plain 2>&1 | Select-Object -Last 80)",
+      "PowerShell(.\\\\gradlew.bat :shared:generateCommonMainObsidianDatabaseInterface --console=plain 2>&1 | Select-Object -Last 60)",
+      "PowerShell(.\\\\gradlew.bat :shared:assemble --console=plain 2>&1 | Select-Object -Last 100)"
+    ]
+  }
+}
