@@ -94,6 +94,19 @@ fun QuickShareImportDialog(
     var isSearching by remember { mutableStateOf(false) }
     var searchError by remember { mutableStateOf<String?>(null) }
 
+    LaunchedEffect(rawSharedText) {
+        if (searchQuery.isBlank() && rawSharedText.contains("http", ignoreCase = true)) {
+            isSearching = true
+            val resolvedTitle = SocialShareParser.resolveVideoTitle(rawSharedText)
+            if (!resolvedTitle.isNullOrBlank()) {
+                val parsed = SocialShareParser.parse(resolvedTitle)
+                searchQuery = if (parsed.extractedQuery.isNotBlank()) parsed.extractedQuery else resolvedTitle
+            } else {
+                isSearching = false
+            }
+        }
+    }
+
     LaunchedEffect(searchQuery) {
         if (searchQuery.isNotBlank()) {
             isSearching = true

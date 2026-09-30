@@ -1,5 +1,9 @@
 package com.obsidian.shipathon.domain.share
 
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+
 /**
  * Intelligent parser that extracts clean game titles or search queries from:
  * 1. TikTok video captions and share URLs
@@ -195,6 +199,41 @@ object SocialShareParser {
             extractedQuery = candidate,
             sourceType = sourceType,
         )
+    }
+
+    /**
+     * Asynchronously fetches video titles from public, zero-auth oEmbed endpoints
+     * (e.g. YouTube & TikTok) when a bare short-link is shared without a caption.
+     */
+    suspend fun resolveVideoTitle(rawUrl: String): String? {
+        return try {
+            val trimmed = rawUrl.trim()
+            val urlMatch = URL_REGEX.find(trimmed)?.value ?: return null
+            
+            val oembedUrl = when {
+                YOUTUBE_URL_REGEX.containsMatchIn(urlMatch) -> 
+                    "https://www.youtube.com/oembed?url=${urlMatch.substringBefore('?')}&format=json"
+                TIKTOK_URL_REGEX.containsMatchIn(urlMatch) ->
+                    "https://www.tiktok.com/oembed?url=${urlMatch}"
+                else -> null
+            } ?: return null
+
+            val client = io.ktor.client.HttpClient()
+            val responseText = client.get(oembedUrl).bodyAsText()
+            client.close()
+
+            // Quick JSON title extraction
+            val titleRegex = Regex("\"title\"\\s*:\\s*\"([^\"]+)\"")
+            val rawTitle = titleRegex.find(responseText)?.groupValues?.getOrNull(1)
+            
+            rawTitle?.replace("\\u0026", "&")
+                ?.replace("\\u2014", "—")
+                ?.replace("\\u2013", "-")
+                ?.replace("\\u0027", "'")
+                ?.replace("\\\"", "\"")
+        } catch (_: Exception) {
+            null
+        }
     }
 }
 
