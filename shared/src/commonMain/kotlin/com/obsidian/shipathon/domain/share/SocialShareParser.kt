@@ -64,6 +64,39 @@ object SocialShareParser {
 
     // Common trailing words / suffixes in social shares
     private val NOISE_SUFFIXES = listOf(
+        "official gameplay trailer",
+        "official reveal trailer",
+        "official launch trailer",
+        "official announcement trailer",
+        "official teaser trailer",
+        "official gameplay",
+        "official trailer",
+        "announcement trailer",
+        "gameplay trailer",
+        "reveal trailer",
+        "launch trailer",
+        "teaser trailer",
+        "is a masterpiece",
+        "is a masterpiece...",
+        "is a master piece",
+        "is unbelievable",
+        "is incredible",
+        "is amazing",
+        "is insane",
+        "is peak",
+        "is so good",
+        "is the best",
+        "my thoughts and review",
+        "my thoughts on",
+        "my thoughts",
+        "honest review",
+        "full review",
+        "game review",
+        "video essay",
+        "retrospective",
+        "critique",
+        "analysis",
+        "impressions",
         "early access",
         "closed beta",
         "open beta",
@@ -100,6 +133,30 @@ object SocialShareParser {
         "beta",
         "demo",
     )
+
+    private fun stripNoise(text: String): String {
+        var result = text.trim()
+        val sortedPrefixes = NOISE_PREFIXES.sortedByDescending { it.length }
+        val sortedSuffixes = NOISE_SUFFIXES.sortedByDescending { it.length }
+        var changed = true
+        while (changed) {
+            changed = false
+            for (noise in sortedPrefixes) {
+                if (result.startsWith(noise, ignoreCase = true)) {
+                    result = result.substring(noise.length).trim()
+                    changed = true
+                }
+            }
+            for (noise in sortedSuffixes) {
+                if (result.endsWith(noise, ignoreCase = true)) {
+                    result = result.substring(0, result.length - noise.length).trim()
+                    changed = true
+                }
+            }
+            result = result.trim { it <= ' ' || it in ":-–—|\"'/!?,." }
+        }
+        return result
+    }
 
     /**
      * Parses raw incoming shared text (which may contain URLs, captions, hashtags)
@@ -148,46 +205,29 @@ object SocialShareParser {
             .replace(Regex("[🎮🔥✨👀💥🎯🕹️👾]"), " ")
             .trim()
 
-        // 4. Strip common introductory noise phrases and trailing suffixes iteratively (longest first)
-        val sortedPrefixes = NOISE_PREFIXES.sortedByDescending { it.length }
-        val sortedSuffixes = NOISE_SUFFIXES.sortedByDescending { it.length }
-        var changed = true
-        while (changed) {
-            changed = false
-            for (noise in sortedPrefixes) {
-                if (cleanedText.startsWith(noise, ignoreCase = true)) {
-                    cleanedText = cleanedText.substring(noise.length).trim()
-                    changed = true
-                }
-            }
-            for (noise in sortedSuffixes) {
-                if (cleanedText.endsWith(noise, ignoreCase = true)) {
-                    cleanedText = cleanedText.substring(0, cleanedText.length - noise.length).trim()
-                    changed = true
-                }
-            }
-            cleanedText = cleanedText.trim { it <= ' ' || it in ":-–—|\"'/!?,." }
-        }
+        // 4. Strip noise from full text
+        cleanedText = stripNoise(cleanedText)
 
-        // 5. If caption was long, take the first line or sentence
-        val firstSentence = cleanedText.split(Regex("[.!?|\\-]")).firstOrNull()?.trim().orEmpty()
-        var candidate = if (firstSentence.length in 2..60) firstSentence else cleanedText.take(50).trim()
+        // 5. Split by sentence or title separators (—, –, -, |, :, etc.) and pick the cleanest segment
+        val segments = cleanedText.split(Regex("[.!?|\\-—–:]")).map { stripNoise(it) }.filter { it.isNotBlank() }
+        val bestSegment = segments.firstOrNull { it.length in 2..60 } ?: cleanedText.take(50).trim()
+        var candidate = stripNoise(bestSegment)
 
-        // 6. If candidate is blank (bare URL shared), extract slug from URL path (e.g. playables, games, shorts)
+        // 6. If candidate is blank (bare URL shared), only extract meaningful slug if it's not an opaque video ID / hash
         if (candidate.isBlank()) {
             val urlMatch = URL_REGEX.find(trimmed)?.value
-            if (urlMatch != null) {
+            if (urlMatch != null && !YOUTUBE_URL_REGEX.containsMatchIn(urlMatch) && !TIKTOK_URL_REGEX.containsMatchIn(urlMatch) && !INSTA_URL_REGEX.containsMatchIn(urlMatch)) {
                 val pathSegments = urlMatch
                     .substringBefore('?')
                     .substringBefore('#')
                     .removeSuffix("/")
                     .split('/')
-                    .filter { it.isNotBlank() && !it.contains("http") && !it.contains("www.") && !it.contains(".com") && !it.contains(".be") && !it.contains(".tv") }
+                    .filter { it.isNotBlank() && !it.contains("http") && !it.contains("www.") && !it.contains(".com") && !it.contains(".be") && !it.contains(".tv") && !it.contains(".org") && !it.contains(".net") }
 
                 val lastSegment = pathSegments.lastOrNull()?.takeIf { it.length > 2 && !it.all { ch -> ch.isDigit() } }
                 if (lastSegment != null) {
                     val decoded = lastSegment.replace('_', ' ').replace('-', ' ').replace("%20", " ").trim()
-                    if (decoded.length in 2..50 && !decoded.equals("watch", ignoreCase = true) && !decoded.equals("shorts", ignoreCase = true) && !decoded.equals("playables", ignoreCase = true)) {
+                    if (decoded.length in 3..50 && !decoded.equals("watch", ignoreCase = true) && !decoded.equals("shorts", ignoreCase = true) && !decoded.equals("playables", ignoreCase = true) && !decoded.matches(Regex("^[a-zA-Z0-9_-]{10,12}$"))) {
                         candidate = decoded
                     }
                 }
@@ -201,6 +241,31 @@ object SocialShareParser {
         )
     }
 
+    private val httpClient by lazy {
+        io.ktor.client.HttpClient {
+            install(io.ktor.client.plugins.HttpTimeout) {
+                connectTimeoutMillis = 15_000
+                socketTimeoutMillis = 20_000
+                requestTimeoutMillis = 25_000
+            }
+        }
+    }
+
+    /**
+     * Extracts YouTube Video ID from any YouTube URL format (youtu.be, watch?v=, shorts/, live/, playables)
+     */
+    fun extractYouTubeVideoId(url: String): String? {
+        val patterns = listOf(
+            Regex("(?:youtu\\.be/|youtube\\.com/(?:embed/|v/|shorts/|live/|watch\\?v=|watch\\?.+&v=))([a-zA-Z0-9_-]{11})"),
+            Regex("youtube\\.com/watch\\?v=([a-zA-Z0-9_-]{11})"),
+        )
+        for (pattern in patterns) {
+            val match = pattern.find(url)
+            if (match != null) return match.groupValues[1]
+        }
+        return null
+    }
+
     /**
      * Asynchronously resolves titles from any bare link on the web:
      * 1. YouTube & TikTok via oEmbed API
@@ -211,27 +276,37 @@ object SocialShareParser {
         return try {
             val trimmed = rawUrl.trim()
             val urlMatch = URL_REGEX.find(trimmed)?.value ?: return null
-            val client = HttpClient()
+            val userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 
             val title: String? = when {
                 YOUTUBE_URL_REGEX.containsMatchIn(urlMatch) -> {
-                    val oembedUrl = "https://www.youtube.com/oembed?url=${urlMatch.substringBefore('?')}&format=json"
-                    val response = client.get(oembedUrl).bodyAsText()
+                    val videoId = extractYouTubeVideoId(urlMatch)
+                    val targetUrl = if (videoId != null) "https://www.youtube.com/watch?v=$videoId" else urlMatch.substringBefore('?')
+                    val oembedUrl = "https://www.youtube.com/oembed?url=${targetUrl}&format=json"
+                    val response = httpClient.get(oembedUrl) {
+                        headers.append("User-Agent", userAgent)
+                    }.bodyAsText()
                     Regex("\"title\"\\s*:\\s*\"([^\"]+)\"").find(response)?.groupValues?.getOrNull(1)
                 }
                 TIKTOK_URL_REGEX.containsMatchIn(urlMatch) -> {
                     val oembedUrl = "https://www.tiktok.com/oembed?url=${urlMatch}"
-                    val response = client.get(oembedUrl).bodyAsText()
+                    val response = httpClient.get(oembedUrl) {
+                        headers.append("User-Agent", userAgent)
+                    }.bodyAsText()
                     Regex("\"title\"\\s*:\\s*\"([^\"]+)\"").find(response)?.groupValues?.getOrNull(1)
                 }
                 REDDIT_URL_REGEX.containsMatchIn(urlMatch) -> {
                     val jsonUrl = "${urlMatch.substringBefore('?').removeSuffix("/")}.json"
-                    val response = client.get(jsonUrl).bodyAsText()
+                    val response = httpClient.get(jsonUrl) {
+                        headers.append("User-Agent", userAgent)
+                    }.bodyAsText()
                     Regex("\"title\"\\s*:\\s*\"([^\"]+)\"").find(response)?.groupValues?.getOrNull(1)
                 }
                 else -> {
                     // Universal Web Fallback: Fetch page and extract og:title or <title>
-                    val html = client.get(urlMatch).bodyAsText()
+                    val html = httpClient.get(urlMatch) {
+                        headers.append("User-Agent", userAgent)
+                    }.bodyAsText()
                     val ogMatch = Regex("<meta\\s+(?:property|name)=[\"']og:title[\"']\\s+content=[\"']([^\"']+)[\"']", RegexOption.IGNORE_CASE).find(html)
                         ?: Regex("<meta\\s+content=[\"']([^\"']+)[\"']\\s+(?:property|name)=[\"']og:title[\"']", RegexOption.IGNORE_CASE).find(html)
                     
@@ -239,7 +314,6 @@ object SocialShareParser {
                         ?: Regex("<title(?:\\s+[^>]*)?>([^<]+)</title>", RegexOption.IGNORE_CASE).find(html)?.groupValues?.getOrNull(1)
                 }
             }
-            client.close()
 
             title?.replace("&amp;", "&")
                 ?.replace("&#39;", "'")
@@ -252,7 +326,8 @@ object SocialShareParser {
                 ?.replace("\\u0027", "'")
                 ?.replace("\\\"", "\"")
                 ?.trim()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            println("Error resolving video title: ${e.message}")
             null
         }
     }
