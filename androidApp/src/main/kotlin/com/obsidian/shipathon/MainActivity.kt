@@ -84,10 +84,20 @@ class MainActivity : ComponentActivity() {
 
     private fun handleIntent(intent: Intent?) {
         if (intent?.action == Intent.ACTION_SEND) {
-            val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+            val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+            val text = intent.getStringExtra(Intent.EXTRA_TEXT)
                 ?: intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
-            if (!sharedText.isNullOrBlank()) {
-                ShareIntentHolder.onShareReceived(sharedText)
+                ?: intent.clipData?.getItemAt(0)?.text?.toString()
+                ?: intent.clipData?.getItemAt(0)?.uri?.toString()
+                ?: intent.dataString
+            
+            val combined = listOfNotNull(subject, text)
+                .filter { it.isNotBlank() }
+                .joinToString(" ")
+                .trim()
+
+            if (combined.isNotBlank()) {
+                ShareIntentHolder.onShareReceived(combined)
             }
         }
     }

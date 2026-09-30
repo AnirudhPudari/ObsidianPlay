@@ -167,7 +167,28 @@ object SocialShareParser {
 
         // 5. If caption was long, take the first line or sentence
         val firstSentence = cleanedText.split(Regex("[.!?|\\-]")).firstOrNull()?.trim().orEmpty()
-        val candidate = if (firstSentence.length in 2..60) firstSentence else cleanedText.take(50).trim()
+        var candidate = if (firstSentence.length in 2..60) firstSentence else cleanedText.take(50).trim()
+
+        // 6. If candidate is blank (bare URL shared), extract slug from URL path (e.g. playables, games, shorts)
+        if (candidate.isBlank()) {
+            val urlMatch = URL_REGEX.find(trimmed)?.value
+            if (urlMatch != null) {
+                val pathSegments = urlMatch
+                    .substringBefore('?')
+                    .substringBefore('#')
+                    .removeSuffix("/")
+                    .split('/')
+                    .filter { it.isNotBlank() && !it.contains("http") && !it.contains("www.") && !it.contains(".com") && !it.contains(".be") && !it.contains(".tv") }
+
+                val lastSegment = pathSegments.lastOrNull()?.takeIf { it.length > 2 && !it.all { ch -> ch.isDigit() } }
+                if (lastSegment != null) {
+                    val decoded = lastSegment.replace('_', ' ').replace('-', ' ').replace("%20", " ").trim()
+                    if (decoded.length in 2..50 && !decoded.equals("watch", ignoreCase = true) && !decoded.equals("shorts", ignoreCase = true) && !decoded.equals("playables", ignoreCase = true)) {
+                        candidate = decoded
+                    }
+                }
+            }
+        }
 
         return ShareParseResult(
             originalText = rawText,
