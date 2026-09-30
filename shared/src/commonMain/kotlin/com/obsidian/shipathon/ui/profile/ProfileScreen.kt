@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -539,12 +541,13 @@ private fun CompactGamingDna(entries: List<LibraryEntry>) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Row(
+                        modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(28.dp)
+                                .size(30.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(GamingCyan.copy(alpha = 0.15f))
                                 .border(1.dp, GamingCyan.copy(alpha = 0.4f), RoundedCornerShape(8.dp)),
@@ -559,26 +562,39 @@ private fun CompactGamingDna(entries: List<LibraryEntry>) {
                         }
                         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                             Text(
-                                text = "Gaming DNA Top Genres",
+                                text = "Gaming DNA",
                                 style = MaterialTheme.typography.titleSmall,
                                 color = GamingTextPrimary,
                                 fontWeight = FontWeight.Bold,
                             )
                             Text(
-                                text = "Your taste profile calculated from your library",
+                                text = "Top genres calculated from library",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = GamingTextSecondary,
                                 fontSize = 10.5.sp,
                             )
                         }
                     }
-                    Text(
-                        text = "${entries.size} Games",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = GamingCyan,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 11.sp,
-                    )
+
+                    Spacer(Modifier.width(8.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(GamingCyan.copy(alpha = 0.12f))
+                            .border(1.dp, GamingCyan.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                    ) {
+                        Text(
+                            text = "${entries.size} Games",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = GamingCyan,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            softWrap = false,
+                        )
+                    }
                 }
 
                 Row(
@@ -613,6 +629,7 @@ private fun CompactGamingDna(entries: List<LibraryEntry>) {
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 10.5.sp,
                                     maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                                 Text(
                                     text = "$percent%",
