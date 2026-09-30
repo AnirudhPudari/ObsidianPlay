@@ -62,6 +62,8 @@ object SocialShareParser {
         "play of",
     )
 
+    private val BRACKET_REGEX = Regex("\\[[^\\]]*\\]|\\([^\\)]*\\)|\\{[^\\}]*\\}|【[^】]*】")
+
     // Common trailing words / suffixes in social shares
     private val NOISE_SUFFIXES = listOf(
         "official gameplay trailer",
@@ -76,6 +78,23 @@ object SocialShareParser {
         "reveal trailer",
         "launch trailer",
         "teaser trailer",
+        "gameplay walkthrough full game",
+        "full game walkthrough",
+        "gameplay walkthrough",
+        "walkthrough full game",
+        "full game playthrough",
+        "gameplay playthrough",
+        "full playthrough",
+        "full walkthrough",
+        "full gameplay",
+        "full stream",
+        "full game",
+        "gameplay",
+        "walkthrough",
+        "playthrough",
+        "longplay",
+        "speedrun",
+        "no commentary",
         "is a masterpiece",
         "is a masterpiece...",
         "is a master piece",
@@ -97,17 +116,10 @@ object SocialShareParser {
         "critique",
         "analysis",
         "impressions",
+        "first impressions",
         "early access",
         "closed beta",
         "open beta",
-        "no commentary",
-        "full gameplay",
-        "full playthrough",
-        "full walkthrough",
-        "full trailer",
-        "gameplay",
-        "walkthrough",
-        "playthrough",
         "trailer",
         "teaser",
         "part 1",
@@ -119,7 +131,6 @@ object SocialShareParser {
         "episode 1",
         "ep 1",
         "ep 2",
-        "full game",
         "today",
         "now",
         "live",
@@ -132,10 +143,25 @@ object SocialShareParser {
         "video",
         "beta",
         "demo",
+        "4k 60fps ps5",
+        "4k 60fps hdr",
+        "4k 60fps",
+        "60fps",
+        "4k hdr",
+        "4k",
+        "1080p",
+        "ray tracing",
+        "ps5",
+        "ps4",
+        "xbox series x",
+        "xbox",
+        "pc ultra",
+        "pc",
+        "nintendo switch",
     )
 
     private fun stripNoise(text: String): String {
-        var result = text.trim()
+        var result = text.replace(BRACKET_REGEX, " ").trim()
         val sortedPrefixes = NOISE_PREFIXES.sortedByDescending { it.length }
         val sortedSuffixes = NOISE_SUFFIXES.sortedByDescending { it.length }
         var changed = true
@@ -155,7 +181,7 @@ object SocialShareParser {
             }
             result = result.trim { it <= ' ' || it in ":-–—|\"'/!?,." }
         }
-        return result
+        return result.replace(Regex("\\s+"), " ").trim()
     }
 
     /**

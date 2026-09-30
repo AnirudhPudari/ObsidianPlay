@@ -108,18 +108,40 @@ fun QuickShareImportDialog(
     }
 
     LaunchedEffect(searchQuery) {
-        if (searchQuery.isNotBlank()) {
+        val trimmed = searchQuery.trim()
+        if (trimmed.isNotBlank()) {
             isSearching = true
             searchError = null
-            AppContainer.gameRepository.searchGames(searchQuery.trim(), limit = 10)
-                .onSuccess { games ->
+            val primaryResult = AppContainer.gameRepository.searchGames(trimmed, limit = 10)
+            primaryResult.onSuccess { games ->
+                if (games.isNotEmpty()) {
                     searchResults = games
                     isSearching = false
+                } else {
+                    // Progressive Fallback: If full multi-word title returned 0 matches, search first 2-3 words
+                    val words = trimmed.split(Regex("\\s+"))
+                    if (words.size > 2) {
+                        val fallbackQuery = words.take(2).joinToString(" ")
+                        val fallbackResult = AppContainer.gameRepository.searchGames(fallbackQuery, limit = 10)
+                        fallbackResult.onSuccess { fallbackGames ->
+                            searchResults = fallbackGames
+                            if (fallbackGames.isNotEmpty()) {
+                                searchQuery = fallbackQuery
+                            }
+                            isSearching = false
+                        }.onFailure {
+                            searchResults = emptyList()
+                            isSearching = false
+                        }
+                    } else {
+                        searchResults = emptyList()
+                        isSearching = false
+                    }
                 }
-                .onFailure { err ->
-                    searchError = err.message ?: "Failed to search games"
-                    isSearching = false
-                }
+            }.onFailure { err ->
+                searchError = err.message ?: "Failed to search games"
+                isSearching = false
+            }
         } else {
             searchResults = emptyList()
             isSearching = false
