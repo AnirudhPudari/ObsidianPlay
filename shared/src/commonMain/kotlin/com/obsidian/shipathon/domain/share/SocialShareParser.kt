@@ -202,35 +202,56 @@ object SocialShareParser {
     }
 
     /**
-     * Asynchronously fetches video titles from public, zero-auth oEmbed endpoints
-     * (e.g. YouTube & TikTok) when a bare short-link is shared without a caption.
+     * Asynchronously resolves titles from any bare link on the web:
+     * 1. YouTube & TikTok via oEmbed API
+     * 2. Reddit via JSON API
+     * 3. Any web URL via OpenGraph (og:title) and HTML <title> scraping
      */
     suspend fun resolveVideoTitle(rawUrl: String): String? {
         return try {
             val trimmed = rawUrl.trim()
             val urlMatch = URL_REGEX.find(trimmed)?.value ?: return null
-            
-            val oembedUrl = when {
-                YOUTUBE_URL_REGEX.containsMatchIn(urlMatch) -> 
-                    "https://www.youtube.com/oembed?url=${urlMatch.substringBefore('?')}&format=json"
-                TIKTOK_URL_REGEX.containsMatchIn(urlMatch) ->
-                    "https://www.tiktok.com/oembed?url=${urlMatch}"
-                else -> null
-            } ?: return null
+            val client = HttpClient()
 
-            val client = io.ktor.client.HttpClient()
-            val responseText = client.get(oembedUrl).bodyAsText()
+            val title: String? = when {
+                YOUTUBE_URL_REGEX.containsMatchIn(urlMatch) -> {
+                    val oembedUrl = "https://www.youtube.com/oembed?url=${urlMatch.substringBefore('?')}&format=json"
+                    val response = client.get(oembedUrl).bodyAsText()
+                    Regex("\"title\"\\s*:\\s*\"([^\"]+)\"").find(response)?.groupValues?.getOrNull(1)
+                }
+                TIKTOK_URL_REGEX.containsMatchIn(urlMatch) -> {
+                    val oembedUrl = "https://www.tiktok.com/oembed?url=${urlMatch}"
+                    val response = client.get(oembedUrl).bodyAsText()
+                    Regex("\"title\"\\s*:\\s*\"([^\"]+)\"").find(response)?.groupValues?.getOrNull(1)
+                }
+                REDDIT_URL_REGEX.containsMatchIn(urlMatch) -> {
+                    val jsonUrl = "${urlMatch.substringBefore('?').removeSuffix("/")}.json"
+                    val response = client.get(jsonUrl).bodyAsText()
+                    Regex("\"title\"\\s*:\\s*\"([^\"]+)\"").find(response)?.groupValues?.getOrNull(1)
+                }
+                else -> {
+                    // Universal Web Fallback: Fetch page and extract og:title or <title>
+                    val html = client.get(urlMatch).bodyAsText()
+                    val ogMatch = Regex("<meta\\s+(?:property|name)=[\"']og:title[\"']\\s+content=[\"']([^\"']+)[\"']", RegexOption.IGNORE_CASE).find(html)
+                        ?: Regex("<meta\\s+content=[\"']([^\"']+)[\"']\\s+(?:property|name)=[\"']og:title[\"']", RegexOption.IGNORE_CASE).find(html)
+                    
+                    ogMatch?.groupValues?.getOrNull(1)
+                        ?: Regex("<title(?:\\s+[^>]*)?>([^<]+)</title>", RegexOption.IGNORE_CASE).find(html)?.groupValues?.getOrNull(1)
+                }
+            }
             client.close()
 
-            // Quick JSON title extraction
-            val titleRegex = Regex("\"title\"\\s*:\\s*\"([^\"]+)\"")
-            val rawTitle = titleRegex.find(responseText)?.groupValues?.getOrNull(1)
-            
-            rawTitle?.replace("\\u0026", "&")
+            title?.replace("&amp;", "&")
+                ?.replace("&#39;", "'")
+                ?.replace("&quot;", "\"")
+                ?.replace("&lt;", "<")
+                ?.replace("&gt;", ">")
+                ?.replace("\\u0026", "&")
                 ?.replace("\\u2014", "—")
                 ?.replace("\\u2013", "-")
                 ?.replace("\\u0027", "'")
                 ?.replace("\\\"", "\"")
+                ?.trim()
         } catch (_: Exception) {
             null
         }
