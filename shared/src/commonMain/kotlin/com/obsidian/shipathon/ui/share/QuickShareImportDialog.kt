@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -282,12 +283,86 @@ fun QuickShareImportDialog(
                             }
 
                             searchResults.isEmpty() -> {
-                                Text(
-                                    text = "Type game name above to search & add",
-                                    color = GamingTextSecondary,
-                                    modifier = Modifier.align(Alignment.Center),
-                                    style = MaterialTheme.typography.bodySmall,
-                                )
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 12.dp, horizontal = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(CircleShape)
+                                            .background(GamingStat),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            imageVector = if (searchQuery.isNotBlank()) ObsidianIcons.Search else ObsidianIcons.Link,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp),
+                                            tint = GamingCyan,
+                                        )
+                                    }
+
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    ) {
+                                        Text(
+                                            text = if (searchQuery.isNotBlank())
+                                                "No direct match for \"${searchQuery.take(24)}\""
+                                            else
+                                                "Link received from ${parseResult.sourceType.displayName}",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = GamingTextPrimary,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Center,
+                                        )
+                                        Text(
+                                            text = if (searchQuery.isNotBlank())
+                                                "Mini-games and playables may not be in IGDB. Search a title or pick below:"
+                                            else
+                                                "Type a game name above or tap a trending title to add:",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = GamingTextSecondary,
+                                            textAlign = TextAlign.Center,
+                                            fontSize = 11.sp,
+                                        )
+                                    }
+
+                                    // Quick Suggestion Chips
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 4.dp),
+                                        horizontalArrangement = Arrangement.Center,
+                                    ) {
+                                        val suggestions = listOf("Elden Ring", "Cyberpunk 2077", "GTA V", "Wukong")
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        ) {
+                                            suggestions.forEach { suggestion ->
+                                                Surface(
+                                                    modifier = Modifier
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .clickable { searchQuery = suggestion },
+                                                    color = GamingCard,
+                                                    border = BorderStroke(1.dp, Color(0x22FFFFFF)),
+                                                    shape = RoundedCornerShape(8.dp),
+                                                ) {
+                                                    Text(
+                                                        text = suggestion,
+                                                        color = GamingCyan,
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
 
                             else -> {
