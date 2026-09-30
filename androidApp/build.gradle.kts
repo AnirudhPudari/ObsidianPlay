@@ -29,7 +29,7 @@ android {
         applicationId = "com.obsidian.shipathon"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 2
+        versionCode = 3
         versionName = "1.0.1"
     }
     packaging {
@@ -41,6 +41,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
