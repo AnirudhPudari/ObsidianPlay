@@ -15,7 +15,9 @@
             android:name=".MainActivity"
             android:resizeableActivity="true"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize"
-            android:launchMode="singleTop">
+            android:launchMode="singleTask"
+            android:taskAffinity="com.obsidian.shipathon"
+            android:documentLaunchMode="never">
             <meta-data
                 android:name="android.supports_size_changes"
                 android:value="true" />
