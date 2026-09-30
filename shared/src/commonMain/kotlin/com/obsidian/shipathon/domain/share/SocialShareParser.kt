@@ -341,7 +341,7 @@ object SocialShareParser {
                 }
             }
 
-            title?.replace("&amp;", "&")
+            val cleanedTitle = title?.replace("&amp;", "&")
                 ?.replace("&#39;", "'")
                 ?.replace("&quot;", "\"")
                 ?.replace("&lt;", "<")
@@ -352,6 +352,27 @@ object SocialShareParser {
                 ?.replace("\\u0027", "'")
                 ?.replace("\\\"", "\"")
                 ?.trim()
+
+            val genericBrandTitles = setOf(
+                "instagram",
+                "login • instagram",
+                "login on instagram",
+                "instagram photo",
+                "instagram video",
+                "tiktok - make your day",
+                "tiktok",
+                "youtube",
+                "reddit",
+                "reddit - dive into anything",
+                "twitter",
+                "x",
+            )
+
+            if (cleanedTitle != null && (genericBrandTitles.contains(cleanedTitle.lowercase().trim()) || cleanedTitle.startsWith("login • instagram", ignoreCase = true))) {
+                null
+            } else {
+                cleanedTitle
+            }
         } catch (e: Exception) {
             println("Error resolving video title: ${e.message}")
             null
