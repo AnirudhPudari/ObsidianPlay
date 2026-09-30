@@ -399,7 +399,7 @@ fun ProfileScreen(
                                 errorMessage = null
                             },
                             placeholder = {
-                                Text("e.g. OBSIDIANPRO", color = GamingTextMuted, fontSize = 13.sp)
+                                Text("Enter promo code", color = GamingTextMuted, fontSize = 13.sp)
                             },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
