@@ -326,7 +326,7 @@ fun ProfileScreen(
                     iconTint = GamingBlue,
                     iconBg = GamingBlue.copy(alpha = 0.15f),
                     title = "ObsidianPlay",
-                    subtitle = "v1.0.0 Production • Data powered by IGDB",
+                    subtitle = "v1.0.2 Production • Data powered by IGDB",
                     actionText = "",
                     actionColor = GamingEmerald,
                     onClick = null,
